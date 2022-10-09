@@ -1,15 +1,22 @@
 plugins {
     id 'java'
+    id 'org.springframework.boot' version '2.7.4'
+    id 'io.spring.dependency-management' version '1.0.14.RELEASE'
 }
+
+apply plugin: 'io.spring.dependency-management'
 
 group 'study.java.reactive'
 version '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
+    maven { url "https://plugins.gradle.org/m2/" }
 }
 
 dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-web")
+
     implementation("org.reactivestreams:reactive-streams:1.0.4")
     implementation("io.projectreactor:reactor-core:3.3.22.RELEASE")
 
