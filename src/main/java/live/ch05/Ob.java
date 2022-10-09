@@ -1,4 +1,4 @@
-package live;
+package live.ch05;
 
 import java.util.Iterator;
 import java.util.Observable;
