@@ -1,6 +1,8 @@
 package live.ch07;
 
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -17,6 +19,7 @@ public class SchedulerEx {
       sub.onSubscribe(new Subscription() {
         @Override
         public void request(long n) {
+          logger.debug("request");
           sub.onNext(1);
           sub.onNext(2);
           sub.onNext(3);
@@ -33,11 +36,39 @@ public class SchedulerEx {
     };
 
     // pub <-> subOnPub <-> sub
-    Publisher<Integer> subOnPub = sub -> {
-      pub.subscribe(sub);
+//    Publisher<Integer> subOnPub = sub -> {
+//      ExecutorService es = Executors.newSingleThreadExecutor();
+//      es.execute(() -> pub.subscribe(sub));
+//    };
+
+    Publisher<Integer> pubOnPub = sub -> {
+      pub.subscribe(new Subscriber<Integer>() {
+        ExecutorService es = Executors.newSingleThreadExecutor();
+
+        @Override
+        public void onSubscribe(Subscription s) {
+          sub.onSubscribe(s);
+        }
+
+        @Override
+        public void onNext(Integer integer) {
+          es.execute(() -> sub.onNext(integer));
+        }
+
+        @Override
+        public void onError(Throwable t) {
+          es.execute(() -> sub.onError(t));
+        }
+
+        @Override
+        public void onComplete() {
+          es.execute(() -> sub.onComplete());
+          es.shutdown();
+        }
+      });
     };
 
-    subOnPub.subscribe(new Subscriber<Integer>() {
+    pubOnPub.subscribe(new Subscriber<Integer>() {
       @Override
       public void onSubscribe(Subscription s) {
         logger.debug("onSubscribe");
@@ -59,6 +90,8 @@ public class SchedulerEx {
         logger.debug("onComplete");
       }
     });
+
+    System.out.println("exit");
   }
 
 }
