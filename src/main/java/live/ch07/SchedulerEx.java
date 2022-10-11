@@ -32,7 +32,12 @@ public class SchedulerEx {
       });
     };
 
-    pub.subscribe(new Subscriber<Integer>() {
+    // pub <-> subOnPub <-> sub
+    Publisher<Integer> subOnPub = sub -> {
+      pub.subscribe(sub);
+    };
+
+    subOnPub.subscribe(new Subscriber<Integer>() {
       @Override
       public void onSubscribe(Subscription s) {
         logger.debug("onSubscribe");
