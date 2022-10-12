@@ -62,6 +62,7 @@ public class SchedulerEx2 {
         public void onError(Throwable t) {
 //          sub.onError(t);
           es.execute(() ->  sub.onError(t));
+          es.shutdown();
         }
 
         @Override
