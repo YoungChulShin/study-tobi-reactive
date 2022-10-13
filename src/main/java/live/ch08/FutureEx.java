@@ -1,5 +1,7 @@
 package live.ch08;
 
+import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -10,6 +12,36 @@ import org.slf4j.LoggerFactory;
 
 public class FutureEx {
 
+  interface SuccessCallback {
+    void onSuccess(String result);
+  }
+
+  interface ExceptionCallback {
+    void onError(Throwable t);
+  }
+
+  public static class CallbackFutureTask extends FutureTask<String> {
+    SuccessCallback sc;
+    ExceptionCallback ec;
+
+    public CallbackFutureTask(Callable<String> callable, SuccessCallback sc, ExceptionCallback ec) {
+      super(callable);
+      this.sc = Objects.requireNonNull(sc);
+      this.ec = Objects.requireNonNull(ec);
+    }
+
+    @Override
+    protected void done() {
+      try {
+        sc.onSuccess(get());
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      } catch (ExecutionException e) {
+        ec.onError(e.getCause());
+      }
+    }
+  }
+
   // 비동기 작업의 결과
   // - future
   // - callback
@@ -17,28 +49,15 @@ public class FutureEx {
     Logger log = LoggerFactory.getLogger(FutureEx.class);
     ExecutorService es = Executors.newCachedThreadPool();
 
-    // 다른 스레드에서 실행된 결과의 응답을 메인스레드로 가져온다
-//    Future<String> f = es.submit(() -> {
-//      Thread.sleep(2000);
-//      log.debug("Async");
-//      return "Hello";
-//    });
-
-    // 32 분
-    FutureTask<String> f = new FutureTask<>(() -> {
-      Thread.sleep(2000);
-      log.debug("Async");
-      return "Hello";
-    });
+    CallbackFutureTask f = new CallbackFutureTask(() -> {
+        Thread.sleep(2000);
+        if (1 == 1) throw new RuntimeException("Async Error");
+        log.debug("Async");
+        return "Hello";},
+        s -> System.out.println("Result: " + s),
+        e -> System.out.println("Error: " + e.getMessage()));
 
     es.execute(f);
     es.shutdown();
-
-//    System.out.println(f.isDone());
-//    Thread.sleep(2100);
-//    log.debug("Exit");
-//    System.out.println(f.isDone());
-//    System.out.println(f.get());
   }
-
 }
