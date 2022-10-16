@@ -1,13 +1,13 @@
-package study.tobi.reactive.reactivetest;
+package study.tobi.reactive.netty;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ReactiveTestApplication {
+public class NettyWebApplication {
 
   public static void main(String[] args) {
-    SpringApplication.run(ReactiveTestApplication.class, args);
+    SpringApplication.run(NettyWebApplication.class, args);
   }
 
 }
